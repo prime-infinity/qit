@@ -64,7 +64,14 @@ qit "added dark mode support"
 
 qit "updated installation docs"
 ```
+``` bash
+qit "Your commit message" --files file1.txt file2.js src/main.dart
+```
+The command above will:
 
+1.  Stage changes changes only in that file(git add <file_path>)
+2.  Create a commit with your message (git commit -m "your message")
+3.  Push to your configured branch (git push origin )
 ### Handling Failed Pushes
 
 If a push fails (e.g., due to no internet connection), the changes will be committed locally but remain unpushed. When your internet connection is restored, you can try pushing again using:
