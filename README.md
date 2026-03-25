@@ -48,7 +48,7 @@ The command above will:
 
 1.  Stage all changes (git add .)
 2.  Create a commit with your message (git commit -m "your message")
-3.  Push to your configured branch (git push origin )
+3.  Push to your current branch (git push origin <current-branch>)
 
 ### Examples
 
@@ -79,21 +79,9 @@ This will run:
 git push origin <branch>
 ```
 
-## Configuration
-
-### Branch Configuration
-
-Create a qit.config.json file in your project root to customize the target branch:
-
-```json
-{
-  "branch": "develop"
-}
-```
-
 ## Default Settings
 
-- If no config file exists, Qit pushes to main branch
+- Qit automatically detects your current branch and pushes to it
 - All changes are staged using git add .
 - Changes are pushed to origin remote
 
@@ -102,7 +90,7 @@ Create a qit.config.json file in your project root to customize the target branc
 ### Core Features
 
 - **Single Command Operation**: Execute multiple git commands with one command
-- **Configurable Branch**: Push to your preferred branch using config file
+- **Auto Branch Detection**: Automatically detects and pushes to your current branch
 - **Smart Defaults**: Works out of the box with sensible defaults
 - **Clear Feedback**: Colorful terminal output shows operation progress
 

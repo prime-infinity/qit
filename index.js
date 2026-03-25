@@ -10,19 +10,13 @@ console.log("program started");
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LAST_COMMIT_FILE = path.join(__dirname, ".last_commit");
 
-function getConfig() {
+async function getCurrentBranch() {
   try {
-    // Try to read config file from current working directory
-    const configPath = path.join(process.cwd(), "qit.config.json");
-    const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-    return {
-      branch: config.branch || "main", // Use 'main' if branch is not specified in config
-    };
+    const { stdout } = await execa("git", ["rev-parse", "--abbrev-ref", "HEAD"]);
+    return stdout.trim();
   } catch (error) {
-    // Return default config if file doesn't exist or has errors
-    return {
-      branch: "main",
-    };
+    console.error(colors.red("✗ Failed to get current branch:"), error.message);
+    process.exit(1);
   }
 }
 
@@ -112,32 +106,34 @@ async function gitPush(commitMessage, branch) {
 }
 
 // Main execution
-const config = getConfig();
-const commitMessage = getCommitMessage();
+(async () => {
+  const branch = await getCurrentBranch();
+  const commitMessage = getCommitMessage();
 
-// Check if the command is `qit p` to retry the push
-if (process.argv[2] === "p") {
-  const lastCommit = loadLastCommitHash();
-  if (!lastCommit) {
-    console.log(colors.red("✗ No previous commit to push."));
-    process.exit(1);
+  // Check if the command is `qit p` to retry the push
+  if (process.argv[2] === "p") {
+    const lastCommit = loadLastCommitHash();
+    if (!lastCommit) {
+      console.log(colors.red("✗ No previous commit to push."));
+      process.exit(1);
+    } else {
+      await pushOnly(branch);
+    }
   } else {
-    pushOnly(config.branch);
-  }
-} else {
-  if (!commitMessage) {
-    console.error(colors.red("✗ Error: Please provide a commit message"));
-    console.log(
-      colors.yellow("Usage: ") + colors.white.bold("qit <commit message>")
-    );
-    process.exit(1); // Exit with error code
-  }
+    if (!commitMessage) {
+      console.error(colors.red("✗ Error: Please provide a commit message"));
+      console.log(
+        colors.yellow("Usage: ") + colors.white.bold("qit <commit message>")
+      );
+      process.exit(1); // Exit with error code
+    }
 
-  // Since we're using async/await, we need to wrap our execution
-  gitPush(commitMessage, config.branch).catch((error) => {
-    console.error(
-      colors.red("✗ Unexpected error: ") + colors.white.bold(error)
-    );
-    process.exit(1);
-  });
-}
+    // Since we're using async/await, we need to wrap our execution
+    await gitPush(commitMessage, branch).catch((error) => {
+      console.error(
+        colors.red("✗ Unexpected error: ") + colors.white.bold(error)
+      );
+      process.exit(1);
+    });
+  }
+})();
